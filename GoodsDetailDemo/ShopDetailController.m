@@ -9,59 +9,43 @@
 #import "ShopDetailController.h"
 
 #import "CXWebView.h"
-#import "AddToCarView.h"
-#import "DetailBuyView.h"
-#import "DetailBuyView.h"
-#import "CollectButton.h"
-#import "RefundExplainView.h"
 #import "SDCycleScrollView.h"
 #import "FPCycleScrollView.h"
-#import "DetailTopChooseView.h"
+#import "SDAutoLayout.h"
+#import "CustomNavView.h"
 
-#import "Util.h"
-#import "Masonry.h"
-#import "APIClient.h"
-#import "AppDelegate.h"
-#import "ShoppingCart.h"
-#import "LoginStateHelp.h"
+#define UIScreenWidth [UIScreen mainScreen].bounds.size.width
+#define UIScreenHeight [UIScreen mainScreen].bounds.size.height
 
-#import "UIImageView+WebCache.h"
-#import "UIButton+ImageTitleSpacing.h"
-#import "NSDecimalNumber+MathEnhance.h"
+#define UI_IS_LANDSCAPE             ([UIDevice currentDevice].orientation == UIDeviceOrientationLandscapeLeft || [UIDevice currentDevice].orientation == UIDeviceOrientationLandscapeRight)
+#define UI_IS_IPAD                  ([[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPad)
+#define UI_IS_IPHONE                ([[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPhone)
+#define UI_IS_IPHONE4               (UI_IS_IPHONE && [[UIScreen mainScreen] bounds].size.height < 568.0)
+#define UI_IS_IPHONE5               (UI_IS_IPHONE && [[UIScreen mainScreen] bounds].size.height == 568.0)
+#define UI_IS_IPHONE6_OR_7          (UI_IS_IPHONE && [[UIScreen mainScreen] bounds].size.height == 667.0)
+#define UI_IS_IPHONE6PLUS_OR_7PLUS  (UI_IS_IPHONE && [[UIScreen mainScreen] bounds].size.height == 736.0 || [[UIScreen mainScreen] bounds].size.width == 736.0) // Both orientations
+#define UI_IS_IOS8_AND_HIGHER   ([[UIDevice currentDevice].systemVersion floatValue] >= 8.0)
+
 
 #define DetailOffSet (UIScreenWidth + 179 - 39 - 44)
 #define AlphaOffSet (UIScreenWidth - 39 - 44 - 20)
 
 @interface ShopDetailController ()
 <UIWebViewDelegate,
-AddToCarViewDelegate,
 SDCycleScrollViewDelegate,
-DetailTopChooseViewDelegate>
+CustomNavViewDelegate>
 
 @property (nonatomic, weak) IBOutlet UIScrollView *scrollContentView;
 @property (nonatomic, weak) IBOutlet UIView *iconView;
-@property (nonatomic, weak) IBOutlet UIView *customNavView;
-@property (nonatomic, weak) IBOutlet UILabel *customTitleLabel;
-@property (nonatomic, weak) IBOutlet DetailTopChooseView *chooseView;
-@property (nonatomic, weak) IBOutlet UILabel *lblTitle;
-@property (nonatomic, weak) IBOutlet CollectButton *collectButton;
-@property (nonatomic, weak) IBOutlet UILabel *lblOrigPrice;//价格
-@property (nonatomic, weak) IBOutlet UILabel *lbStore;     //库存
-@property (nonatomic, weak) IBOutlet UILabel *lbGuige;     //规格
-@property (nonatomic, weak) IBOutlet UILabel *lbBrand;     //品牌
-@property (nonatomic, weak) IBOutlet UIButton *addShopCarButton;
-@property (nonatomic, weak) IBOutlet UIImageView *detailImgView;  
+@property (nonatomic, weak) IBOutlet CustomNavView *customNavView;
 @property (nonatomic, weak) IBOutlet CXWebView *webView;   //图文详情
 @property (nonatomic, weak) IBOutlet NSLayoutConstraint *webViewHeight;
 @property (nonatomic, weak) IBOutlet NSLayoutConstraint *imgIconTop;
 @property (weak, nonatomic) IBOutlet NSLayoutConstraint *imgIconBottom;
 @property (nonatomic, weak) IBOutlet NSLayoutConstraint *imgIconHeight;
 @property (nonatomic, weak) IBOutlet NSLayoutConstraint *imgIconWidth;
-@property (nonatomic, weak) IBOutlet NSLayoutConstraint *detailImgHeight;
 
 @property (nonatomic, strong) FPCycleScrollView *cycleView;
-@property (nonatomic, strong) SGoods *goods;
-@property (nonatomic, strong) NSArray *imagesArr;
 @property (nonatomic, assign) NSInteger currentIndex;
 @property (nonatomic, assign) CGFloat detailOffsetY;
 
@@ -71,6 +55,7 @@ DetailTopChooseViewDelegate>
 
 - (CGFloat)detailOffsetY {
    
+    //这个应该是可以计算出来的 ，还没想出来
     if (UI_IS_IPHONE4 || UI_IS_IPHONE5) {
         _detailOffsetY = 210;
     } else if (UI_IS_IPHONE6_OR_7) {
@@ -83,9 +68,10 @@ DetailTopChooseViewDelegate>
  
     return _detailOffsetY;
 }
+
 - (IBAction)custonBackButton:(id)sender {
     
-    [self.navigationController popViewControllerAnimated:YES];
+    [self dismissViewControllerAnimated:YES completion:nil];
 }
 
 - (void)layoutImgIcon {
@@ -110,116 +96,47 @@ DetailTopChooseViewDelegate>
     _cycleView.sd_layout.spaceToSuperView(UIEdgeInsetsMake(0, 0, 0, 0));
 }
 
-- (void)setSubviews {
-    self.chooseView.chooseViewDelegate = self;
-    WeakObj(self);
-    self.collectButton.didSelectedButton = ^(SGoods *goods) {
-        MLLog(@"%@",goods.goods_id);
-        if (weakself.changeCollectTypeBlock) {
-            weakself.changeCollectTypeBlock(goods);
-        }
-    };
-}
-#pragma mark init
-- (instancetype)initWithGoodID:(NSString *)goods_id {
-  
-    self = [super init];
-    if (self) {
-        
-        self.goods_id = goods_id;
-    }
-    return self;
-}
 
 - (void)viewDidLoad {
     
     [super viewDidLoad];
     
+    self.customNavView.customNavViewDelegate = self;
     [self layoutImgIcon];
     [self setCycleView];
-    [self requestGoodsDetails];
-    [self setSubviews];
+    [self setGoods];
 }
 
 - (void)viewWillAppear:(BOOL)animated {
+    
     [super viewWillAppear:animated];
+    
     [self refreshNavigationBar];
-    [UIApplication sharedApplication].statusBarStyle = UIStatusBarStyleDefault;
-    [self.navigationController setNavigationBarHidden:YES animated:YES];
+
     [self.scrollContentView addObserver:self forKeyPath:@"contentOffset" options:NSKeyValueObservingOptionOld|NSKeyValueObservingOptionNew context:nil];
-    [MobClick event:@"commodityDetails"];
 }
 
 - (void)viewWillDisappear:(BOOL)animated {
+    
     [super viewWillDisappear:animated];
-    [self.navigationController setNavigationBarHidden:NO animated:YES];
+   
     [self.scrollContentView removeObserver:self forKeyPath:@"contentOffset"];
 }
 
-- (void)viewDidDisappear:(BOOL)animated {
-    [super viewDidDisappear:animated];
-    [UIApplication sharedApplication].statusBarStyle = UIStatusBarStyleLightContent;
-
-}
-#pragma mark  request
--(void)requestGoodsDetails {
-    
-    if (![Util networkCanUse]) {
-        [MBProgressHUD showTips:@"请检测网络"];
-        return;
-    }
-    
-    MBProgressHUD *hud = [MBProgressHUD showHUDMessage:LOADING toView:nil];
-    WeakObj(self);
-    [[APIClient sharedClient] getGoodsDetails:self.goods_id
-                             showErrorMessage:YES
-                                        success:^(NSURLSessionDataTask *task, NSUInteger code, NSString *message, SGoods *goods, SSupplier *supplier) {
-                                            weakself.goods = goods;
-                                            [hud hideAnimated:YES];
-                                        }  serverDataFailure:^(NSInteger code, NSString *msg) {
-                                            [hud hideAnimated:YES];
-                                        } failure:^(NSURLSessionDataTask *task, NSError *error) {
-                                            [hud hideAnimated:YES];
-                                        }];
-}
-
-- (void)setGoods:(SGoods *)goods {
+- (void)setGoods {
    
-    _goods = goods;
-    
-    _customTitleLabel.text = goods.name;
-    
-    _lblTitle.text = goods.name;
-    
-    _lblOrigPrice.attributedText = [goods gainShowPrice];
-   
-    _collectButton.goods = goods;
-    
-    _lbBrand.text = goods.brand_name;
-    
-    _lbGuige.text = [NSString stringWithFormat:@"箱规格 %@ *%ld包",goods.norms, (long)goods.box_num];
-    
-    _lbStore.text = [NSString stringWithFormat:@"%ld 箱",(long)goods.stock/goods.box_num];
+    NSArray *imagesArray = @[@"http://image.o2o.zhaioto.com/wholesale/goodsstandard/991001/991001002/c8f1e6578357dc9d52815fdb21b09d13.jpg",
+                             @"http://image.o2o.zhaioto.com/wholesale/goodsstandard/991001/991001002/9a28791abbff196ec53468e851d8039b.jpg",
+                             @"http://image.o2o.zhaioto.com/wholesale/goodsstandard/991001/991001002/9edbb56933713cfc8701add343f1780b.jpg"];
         
-    _cycleView.imageURLStringsGroup = goods.imgArr;
+    _cycleView.imageURLStringsGroup = imagesArray;
     _cycleView.currentPage = 1;
 
-    if (goods.brief.length) {
-        [_webView loadHTMLString:goods.brief baseURL:nil];
-        MLLog(@"loadeHtmlString:%@",goods.brief);
-    } else {
-        _detailImgView.hidden = YES;
-        _detailImgHeight.constant = 1.0f;
-    }
+    NSString *htmlString = @"<img src=\"http://mingtesst.img-cn-shanghai.aliyuncs.com/wholesale/goodsstandard/991001/991001002/brief/fda6c42659102107a3baed1796cc55db.jpg\" alt=\"\" />";
+    [_webView loadHTMLString:htmlString baseURL:nil];
+
     
-    if (goods.stock == 0) {
-        _addShopCarButton.userInteractionEnabled = NO;
-        [_addShopCarButton setBackgroundColor:[UIColor grayColor]];
-    } else {
-        _addShopCarButton.userInteractionEnabled = YES;
-        [_addShopCarButton setBackgroundColor:UIPriceColor];
-    }
-}
+ }
 
 #pragma mark UIWebViewDelegate
 - (void)webViewDidFinishLoad:(UIWebView *)webView {
@@ -238,34 +155,6 @@ DetailTopChooseViewDelegate>
     self.cycleView.currentPage = index + 1;
 }
 
-#pragma mark actions
-- (IBAction)btnAddToCartClick:(UIButton *)sender {
-    
-    if ([SUser isNeedLogin]) {
-        [LoginStateHelp showLoginVC:self success:nil];
-        return;
-    }
-
-    AddToCarView *carView = [AddToCarView getInstanceWithGoods:self.goods delegate:self];
-    [carView show];
-
-    [self setMobCick];
-}
-
-#pragma AddToCarViewDelegate
-- (void)showWithAddToCarViewDelegate:(AddToCarView *)carView {
-    [UIApplication sharedApplication].statusBarStyle = UIStatusBarStyleLightContent;
-}
-
-- (void)cancelWithAddToCarViewDelegate:(AddToCarView *)carView {
-    [UIApplication sharedApplication].statusBarStyle = UIStatusBarStyleDefault;
-}
-
-- (IBAction)goShopCar:(id)sender {
-    
-    self.tabBarController.selectedIndex = 2;
-    [self.navigationController popToRootViewControllerAnimated:NO];
-}
 
 #pragma mark DetailTopChooseViewDelegate
 - (void)clickGoodsButton:(UIButton *)button {
@@ -276,16 +165,6 @@ DetailTopChooseViewDelegate>
     [self.scrollContentView setContentOffset:CGPointMake(0, self.detailOffsetY) animated:YES];
 }
 
-- (void)scaleIconImage:(CGFloat)offsetY {
-    
-    self.imgIconTop.constant    = offsetY;
-    self.imgIconHeight.constant = -offsetY+UIScreenWidth;
-    self.imgIconWidth.constant  = -offsetY+UIScreenWidth;
-    [self.scrollContentView layoutIfNeeded];
-    
-    [self.cycleView scrollToItemAtIndex:self.currentIndex];
-}
-
 #pragma mark - KVO
 - (void)observeValueForKeyPath:(NSString *)keyPath ofObject:(id)object change:(NSDictionary<NSString *,id> *)change context:(void *)context{
     
@@ -294,46 +173,40 @@ DetailTopChooseViewDelegate>
     }
 }
 
+
 #pragma mark NavigationBar
 - (void)refreshNavigationBar {
     
     CGPoint offset = self.scrollContentView.contentOffset;
-    MLLog(@"%@",NSStringFromCGPoint(offset));
+    NSLog(@"%@",NSStringFromCGPoint(offset));
     CGFloat offsetY = offset.y;
     if (offset.y < 0) {
        
-        [self scaleIconImage:offsetY];
+        //下拉放大图片
+        self.imgIconTop.constant    = offsetY;
+        self.imgIconHeight.constant = -offsetY+UIScreenWidth;
+        self.imgIconWidth.constant  = -offsetY+UIScreenWidth;
+        [self.scrollContentView layoutIfNeeded];
+        [self.cycleView scrollToItemAtIndex:self.currentIndex];
         
     } else {
         
-        // 通过offset.y与 图片高度 减去自定义头部高度再减去图片下标的偏移量 比例来决定透明度
+        //通过offset.y与 图片高度 减去自定义头部高度再减去图片下标的偏移量 比例来决定透明度
         CGFloat alpha = MIN(1, fabs(offsetY/(AlphaOffSet - offsetY)));
         self.customNavView.alpha = alpha;
-        self.customTitleLabel.alpha = alpha;
-        
         //偏移量超过一定程度就不用改变 否则影响整体滑动，如果不存在商品详情也停止滑动
-        if (offsetY <= DetailOffSet - self.detailOffsetY && self.goods.brief.length && _webView.hidden == NO) {
+        if (offsetY <= DetailOffSet - self.detailOffsetY && _webView.hidden == NO) {
             self.imgIconBottom.constant = -offsetY;
             self.cycleView.pageNumberLabelOffset = offsetY;
         }
         
         if (offsetY >= DetailOffSet - self.detailOffsetY) {
-            [self.chooseView selectDetailButton];
+            [self.customNavView selectDetailButton];
         } else {
-            [self .chooseView selectGoodsButton];
+            [self.customNavView selectGoodsButton];
         }
     }
 }
 
-- (void)setMobCick {
-    [MobClick event:@"detailsShopping"];
-    [MobClick event:@"TR_joinShopping"];
-    [MobClick event:@"HB_joinShopping"];
-    [MobClick event:@"HC_joinShopping"];
-    [MobClick event:@"homeSearch_joinShopping"];
-    [MobClick event:@"ification_joinShopping"];
-    [MobClick event:@"ificationSearch_joinShopping"];
-    [MobClick event:@"collection_joinShopping"];
-}
 
 @end

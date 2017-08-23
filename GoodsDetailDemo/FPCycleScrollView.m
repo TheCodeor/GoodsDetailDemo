@@ -7,6 +7,8 @@
 //
 
 #import "FPCycleScrollView.h"
+#import "UIColor+Hex.h"
+#import "SDAutoLayout.h"
 
 @interface FPCycleScrollView ()
 

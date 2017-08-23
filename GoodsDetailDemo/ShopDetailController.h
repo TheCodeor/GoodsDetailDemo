@@ -7,15 +7,7 @@
 //
 
 #import <UIKit/UIKit.h>
-#import "BaseVC.h"
 
-@interface ShopDetailController : BaseVC
-
-@property (nonatomic, strong) void(^changeCollectTypeBlock)(SGoods *goods);
-@property(nonatomic,strong)NSString *goods_id;
-
-@property (nonatomic, strong) NSMutableArray <SCarSeller *>*shoppingList;
-
-- (instancetype)initWithGoodID:(NSString *)goods_id;
+@interface ShopDetailController : UIViewController
 
 @end

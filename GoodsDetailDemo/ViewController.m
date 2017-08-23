@@ -7,6 +7,7 @@
 //
 
 #import "ViewController.h"
+#import "ShopDetailController.h"
 
 @interface ViewController ()
 
@@ -19,6 +20,11 @@
     // Do any additional setup after loading the view, typically from a nib.
 }
 
+- (IBAction)showGoodsDetailVC:(id)sender {
+    
+    ShopDetailController *vc = [[ShopDetailController alloc] init];
+    [self presentViewController:vc animated:YES completion:nil];
+}
 
 - (void)didReceiveMemoryWarning {
     [super didReceiveMemoryWarning];

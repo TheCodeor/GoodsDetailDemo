@@ -8,6 +8,18 @@
 
 #import <UIKit/UIKit.h>
 
+@protocol CustomNavViewDelegate <NSObject>
+
+- (void)clickGoodsButton:(UIButton *)button;
+- (void)clickDetailButton:(UIButton *)button;
+
+@end
+
 @interface CustomNavView : UIView
+
+@property (nonatomic, weak) id <CustomNavViewDelegate> customNavViewDelegate;
+
+- (void)selectGoodsButton;
+- (void)selectDetailButton;
 
 @end
