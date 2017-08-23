@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.XIB" version="3.0" toolsVersion="10117" systemVersion="15E65" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES">
+    <dependencies>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="10085"/>
+    </dependencies>
+    <objects>
+        <placeholder placeholderIdentifier="IBFilesOwner" id="-1" userLabel="File's Owner" customClass="ShopDetailController">
+            <connections>
+                <outlet property="contentView" destination="jDS-PF-HgU" id="Ic8-Op-D0n"/>
+                <outlet property="scrollContentView" destination="PXu-ha-2wq" id="Tdd-Ys-c4z"/>
+                <outlet property="view" destination="i5M-Pr-FkT" id="sfx-zR-JGt"/>
+            </connections>
+        </placeholder>
+        <placeholder placeholderIdentifier="IBFirstResponder" id="-2" customClass="UIResponder"/>
+        <view clearsContextBeforeDrawing="NO" contentMode="scaleToFill" id="i5M-Pr-FkT">
+            <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
+            <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+            <subviews>
+                <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="jDS-PF-HgU">
+                    <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
+                    <subviews>
+                        <scrollView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" ambiguous="YES" translatesAutoresizingMaskIntoConstraints="NO" id="PXu-ha-2wq">
+                            <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
+                            <subviews>
+                                <imageView userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="ImgTest" translatesAutoresizingMaskIntoConstraints="NO" id="Vcs-u4-ebv">
+                                    <rect key="frame" x="0.0" y="0.0" width="114" height="360"/>
+                                    <constraints>
+                                        <constraint firstAttribute="height" constant="360" id="5gz-Xa-B93"/>
+                                    </constraints>
+                                </imageView>
+                            </subviews>
+                            <color key="backgroundColor" red="1" green="0.1764705882" blue="0.29411764709999999" alpha="1" colorSpace="calibratedRGB"/>
+                            <constraints>
+                                <constraint firstItem="Vcs-u4-ebv" firstAttribute="top" secondItem="PXu-ha-2wq" secondAttribute="top" id="eia-3f-5Ry"/>
+                                <constraint firstItem="Vcs-u4-ebv" firstAttribute="trailing" secondItem="PXu-ha-2wq" secondAttribute="trailing" id="jf1-B4-TlP"/>
+                                <constraint firstItem="Vcs-u4-ebv" firstAttribute="leading" secondItem="PXu-ha-2wq" secondAttribute="leading" id="xVM-uX-3sZ"/>
+                            </constraints>
+                        </scrollView>
+                    </subviews>
+                    <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                    <constraints>
+                        <constraint firstAttribute="bottom" secondItem="PXu-ha-2wq" secondAttribute="bottom" id="3Ix-gF-Mqo"/>
+                        <constraint firstAttribute="trailing" secondItem="PXu-ha-2wq" secondAttribute="trailing" id="8je-zv-cQx"/>
+                        <constraint firstItem="PXu-ha-2wq" firstAttribute="leading" secondItem="jDS-PF-HgU" secondAttribute="leading" id="ZjO-pR-fKN"/>
+                        <constraint firstItem="PXu-ha-2wq" firstAttribute="top" secondItem="jDS-PF-HgU" secondAttribute="top" id="m4J-iQ-yXt"/>
+                    </constraints>
+                </view>
+            </subviews>
+            <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="calibratedWhite"/>
+            <constraints>
+                <constraint firstItem="jDS-PF-HgU" firstAttribute="trailing" secondItem="i5M-Pr-FkT" secondAttribute="trailing" id="FLb-lc-1um"/>
+                <constraint firstItem="jDS-PF-HgU" firstAttribute="bottom" secondItem="i5M-Pr-FkT" secondAttribute="bottom" id="InA-Pq-ggp"/>
+                <constraint firstItem="jDS-PF-HgU" firstAttribute="leading" secondItem="i5M-Pr-FkT" secondAttribute="leading" id="KCH-1d-fh6"/>
+                <constraint firstItem="jDS-PF-HgU" firstAttribute="top" secondItem="i5M-Pr-FkT" secondAttribute="top" id="UGT-6T-ZP2"/>
+            </constraints>
+            <nil key="simulatedTopBarMetrics"/>
+            <simulatedScreenMetrics key="simulatedDestinationMetrics" type="retina47"/>
+        </view>
+    </objects>
+    <resources>
+        <image name="ImgTest" width="114" height="114"/>
+    </resources>
+</document>
