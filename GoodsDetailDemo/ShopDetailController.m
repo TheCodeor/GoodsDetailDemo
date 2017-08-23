@@ -113,14 +113,17 @@ CustomNavViewDelegate>
     
     [self refreshNavigationBar];
 
-    [self.scrollContentView addObserver:self forKeyPath:@"contentOffset" options:NSKeyValueObservingOptionOld|NSKeyValueObservingOptionNew context:nil];
+    [self.scrollContentView addObserver:self forKeyPath:@"contentOffset"
+                                options:NSKeyValueObservingOptionOld|NSKeyValueObservingOptionNew
+                                context:nil];
 }
 
 - (void)viewWillDisappear:(BOOL)animated {
     
     [super viewWillDisappear:animated];
    
-    [self.scrollContentView removeObserver:self forKeyPath:@"contentOffset"];
+    [self.scrollContentView removeObserver:self
+                                forKeyPath:@"contentOffset"];
 }
 
 - (void)setGoods {
@@ -183,11 +186,11 @@ CustomNavViewDelegate>
     if (offset.y < 0) {
        
         //下拉放大图片
-        self.imgIconTop.constant    = offsetY;
-        self.imgIconHeight.constant = -offsetY+UIScreenWidth;
-        self.imgIconWidth.constant  = -offsetY+UIScreenWidth;
-        [self.scrollContentView layoutIfNeeded];
-        [self.cycleView scrollToItemAtIndex:self.currentIndex];
+        self.imgIconTop.constant    = offsetY; //图片顶部的约束
+        self.imgIconHeight.constant = -offsetY+UIScreenWidth;//图片高
+        self.imgIconWidth.constant  = -offsetY+UIScreenWidth;//图片宽
+        [self.scrollContentView layoutIfNeeded]; //跟新约束
+        [self.cycleView scrollToItemAtIndex:self.currentIndex]; //修改图片位置使其在屏幕中间
         
     } else {
         
@@ -196,10 +199,11 @@ CustomNavViewDelegate>
         self.customNavView.alpha = alpha;
         //偏移量超过一定程度就不用改变 否则影响整体滑动，如果不存在商品详情也停止滑动
         if (offsetY <= DetailOffSet - self.detailOffsetY && _webView.hidden == NO) {
-            self.imgIconBottom.constant = -offsetY;
-            self.cycleView.pageNumberLabelOffset = offsetY;
+            self.imgIconBottom.constant = -offsetY;//图片的底部约束，
+            self.cycleView.pageNumberLabelOffset = offsetY;//右下角页面的位置更新
         }
         
+        //跟新下划线的位置
         if (offsetY >= DetailOffSet - self.detailOffsetY) {
             [self.customNavView selectDetailButton];
         } else {
